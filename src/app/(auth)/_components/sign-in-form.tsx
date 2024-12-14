@@ -24,6 +24,7 @@ import Link from "next/link";
 export const SignInFormLogic = () => {
   const [error, setError] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
+  const [showTwoFactor, setShowTwoFactor] = useState(false);
 
   const searchParams = useSearchParams();
   const urlError =
@@ -36,6 +37,7 @@ export const SignInFormLogic = () => {
     defaultValues: {
       email: "",
       password: "",
+      code: "",
     },
   });
 
@@ -50,46 +52,71 @@ export const SignInFormLogic = () => {
         return;
       }
       toast.success(result.message);
+
+      if (result.data.isTwoFactorEnabled) {
+        setShowTwoFactor(true);
+      }
     });
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>メールアドレス</FormLabel>
-              <FormControl>
-                <Input placeholder="shadcn@example.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>パスワード</FormLabel>
-              <FormControl>
-                <Input placeholder="1234567" {...field} />
-              </FormControl>
-              <Button
-                size="sm"
-                variant="link"
-                asChild
-                className="px-0 font-normal"
-              >
-                <Link href="/reset-password">パスワードをお忘れですか？</Link>
-              </Button>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {showTwoFactor && (
+          <FormField
+            control={form.control}
+            name="code"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>OTP認証</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="123456" disabled={isPending} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+        {!showTwoFactor && (
+          <>
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>メールアドレス</FormLabel>
+                  <FormControl>
+                    <Input placeholder="shadcn@example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>パスワード</FormLabel>
+                  <FormControl>
+                    <Input placeholder="1234567" {...field} />
+                  </FormControl>
+                  <Button
+                    size="sm"
+                    variant="link"
+                    asChild
+                    className="px-0 font-normal"
+                  >
+                    <Link href="/reset-password">
+                      パスワードをお忘れですか？
+                    </Link>
+                  </Button>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        )}
         <FormError message={error || urlError} />
         <Button type="submit" disabled={isPending} size="default">
           ログイン

@@ -1,9 +1,14 @@
 import { Button } from "@/components/ui/button";
-import { signOut } from "../../auth";
+import { auth, signOut } from "../../auth";
+import UpdateProfileSheet from "@/components/update-profile-sheet";
 
 const MyAccountPage = async () => {
+  const session = await auth();
+  console.table(session);
+
   return (
     <div>
+      <UpdateProfileSheet />
       <form
         action={async () => {
           "use server";

@@ -57,14 +57,7 @@
 
 ## セットアップ
 
-1. リポジトリのクローン:
-
-```bash
-git clone <your-repo-url>
-cd <your-repo-name>
-```
-
-2. 依存関係のインストール:
+1. 依存関係のインストール:
 
 ```bash
 npm install
@@ -75,7 +68,7 @@ npm install next@15.1.0 react@19.0.0 react-dom@19.0.0 next-auth@5.0.0-beta.25 @p
 
 注意: このプロジェクトはTurbopackを使用しています。開発サーバー起動時に`--turbopack`フラグが必要です。
 
-3. 環境変数の設定:
+2. 環境変数の設定:
 
 `.env`ファイルを作成し、以下の環境変数を設定:
 
@@ -194,3 +187,86 @@ export const VerificationEmail = ({
   );
 };
 ```
+
+## セキュリティ設定
+
+このプロジェクトでは、以下のセキュリティ対策を実装しています：
+
+### セキュリティヘッダー
+
+`next.config.ts`で以下のセキュリティヘッダーを設定しています：
+
+```typescript
+const cspHeader = `
+    default-src 'self';
+    script-src 'self' 'unsafe-eval' 'unsafe-inline';
+    style-src 'self' 'unsafe-inline';
+    object-src 'none';
+    frame-ancestors 'none';
+    block-all-mixed-content;
+    upgrade-insecure-requests;
+`;
+```
+
+#### 実装されているセキュリティ機能
+
+1. **コンテンツセキュリティポリシー (CSP)**
+
+   - 同一オリジンリソースのみを許可
+   - スクリプトとスタイルの制御
+   - 混在コンテンツのブロック
+   - HTTPSへの自動アップグレード
+
+2. **HTTP Strict Transport Security (HSTS)**
+
+   - HTTPS通信の強制（max-age: 2年）
+   - サブドメインへの適用
+   - ブラウザのプリロードリストへの登録対応
+
+3. **X-Frame-Options**
+
+   - クリックジャッキング攻撃の防止
+   - 同一オリジンのフレームのみ許可
+
+4. **Referrer Policy**
+   - クロスオリジンでのリファラー情報の制御
+   - プライバシー保護の強化
+
+### その他のセキュリティ機能
+
+- **パスワードハッシュ化**
+
+  - bcryptを使用した安全なパスワード保存
+  - ソルト自動生成
+
+- **レート制限**
+
+  - ログイン試行回数の制限
+  - パスワードリセットリクエストの制限
+
+- **CSRF保護**
+
+  - Auth.jsによる自動的なCSRFトークン管理
+
+- **XSS対策**
+  - React/Next.jsの自動エスケープ機能
+  - CSPによる追加的な保護
+
+### 開発環境での注意点
+
+1. セキュリティヘッダーは開発環境で問題を引き起こす可能性があります。必要に応じて環境変数で制御してください：
+
+```typescript
+// next.config.ts
+const headers = process.env.NODE_ENV === "production" ? securityHeaders : [];
+```
+
+2. `unsafe-eval`と`unsafe-inline`の使用は、Next.jsの動作に必要ですが、セキュリティリスクを若干高めます。
+
+### セキュリティのベストプラクティス
+
+- 定期的なパッケージの更新
+- 環境変数の適切な管理
+- 本番環境でのデバッグモードの無効化
+- セッショントークンの適切な管理
+- ログイン試行の監視とブロック
